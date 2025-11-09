@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Contact Me</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body { font-family: system-ui, sans-serif; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
+      form { display: grid; gap: 12px; }
+      input, textarea, button { padding: 10px; font-size: 16px; }
+      .hidden { display: none !important; }
+      .msg { margin-top: 1rem; }
+    </style>
+  </head>
+  <body>
+    <h1>Contact</h1>
+    <p>Send me a message. It will be saved to Airtable.</p>
+
+    <form id="contact-form" method="post" action="/contact">
+      <label>
+        Name *
+        <input name="name" required />
+      </label>
+      <label>
+        Email *
+        <input type="email" name="email" required />
+      </label>
+      <label>
+        Message *
+        <textarea name="message" rows="6" required></textarea>
+      </label>
+      <!-- Honeypot -->
+      <input class="hidden" type="text" name="website" autocomplete="off" tabindex="-1" />
+      <button type="submit">Send</button>
+      <div class="msg" id="msg"></div>
+    </form>
+
+    <script>
+      const form = document.getElementById("contact-form");
+      const msg = document.getElementById("msg");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        msg.textContent = "Sending...";
+        const formData = new FormData(form);
+        try {
+          const res = await fetch("/contact", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(formData).toString()
+          });
+          const data = await res.json();
+          if (data.ok) {
+            msg.textContent = "✅ Thanks! Your message was sent.";
+            form.reset();
+          } else {
+            msg.textContent = "❌ " + (data.error || "Something went wrong.");
+          }
+        } catch (err) {
+          msg.textContent = "❌ Network error.";
+        }
+      });
+    </script>
+  </body>
+</html>
